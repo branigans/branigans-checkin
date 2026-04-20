@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="theme-color" content="#0a0a0c"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+<title>BRANIGANS — Registro de Asistencia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0a0a0c;--bg2:#111115;--bg3:#18181e;--bg4:#202028;
+  --border:#28282f;--border2:#35353f;
+  --text:#ededf5;--text2:#8888a0;--text3:#44445a;
+  --gold:#c9a84c;--gold-bg:#100e06;--gold-dim:#2a2410;
+  --green:#34d399;--green-bg:#041a10;--green-dim:#0a3020;
+  --red:#f87171;--red-bg:#1a0404;--red-dim:#300a0a;
+  --amber:#fbbf24;--amber-bg:#130f02;
+  --radius:16px;
+  --mono:'DM Mono',monospace;
+  --display:'Bebas Neue',sans-serif;
+  --body:'DM Sans',sans-serif;
+}
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--body);background:var(--bg);color:var(--text);font-size:16px;line-height:1.5}
+.app{max-width:430px;margin:0 auto;height:100vh;display:flex;flex-direction:column;position:relative;overflow:hidden}
+
+/* ── SCREENS ── */
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;background:var(--bg);transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);overflow-y:auto;overflow-x:hidden}
+.screen.active{transform:translateX(0);z-index:1}
+.screen.prev{transform:translateX(-30%);z-index:0}
+
+/* ── TOP BAR ── */
+.topbar{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;position:sticky;top:0;background:var(--bg);z-index:10;border-bottom:1px solid var(--border)}
+.brand{font-family:var(--display);font-size:22px;letter-spacing:2px;color:var(--gold)}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.clock{font-family:var(--mono);font-size:12px;color:var(--text3)}
+
+/* ── HERO ── */
+.hero{padding:48px 24px 32px;flex-shrink:0}
+.hero-tag{font-size:10px;letter-spacing:4px;text-transform:uppercase;color:var(--gold);font-weight:500;margin-bottom:16px;display:block}
+.hero h1{font-family:var(--display);font-size:52px;line-height:1;letter-spacing:2px;margin-bottom:12px}
+.hero h1 span{color:var(--gold)}
+.hero p{font-size:14px;color:var(--text2);font-weight:300}
+.hero-line{width:40px;height:2px;background:var(--gold);margin-bottom:20px;opacity:.5}
+
+/* ── ROLE CARDS ── */
+.role-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:0 20px 40px}
+.role-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:24px 16px;cursor:pointer;transition:.2s;text-align:center;position:relative;overflow:hidden}
+.role-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--gold)08,transparent);opacity:0;transition:.3s}
+.role-card:hover::before,.role-card:active::before{opacity:1}
+.role-card:hover{border-color:var(--border2);transform:translateY(-3px)}
+.role-card.gold-card{border-color:var(--gold-dim);background:var(--gold-bg)}
+.role-card .r-icon{font-size:32px;margin-bottom:12px;display:block}
+.role-card h3{font-family:var(--display);font-size:20px;letter-spacing:1px;margin-bottom:4px}
+.role-card p{font-size:11px;color:var(--text3)}
+
+/* ── SECTION ── */
+.section{padding:24px 20px}
+.sec-label{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--text3);font-weight:500;margin-bottom:14px;display:block}
+.divider{height:1px;background:var(--border);margin:4px 0}
+
+/* ── FORM ── */
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;color:var(--text2);margin-bottom:6px;font-weight:500}
+.field input,.field select{width:100%;padding:13px 16px;background:var(--bg3);border:1px solid var(--border);border-radius:12px;font-size:15px;color:var(--text);font-family:var(--body);transition:.2s;-webkit-appearance:none}
+.field input:focus,.field select:focus{outline:none;border-color:var(--gold);background:var(--bg4)}
+.field input::placeholder{color:var(--text3)}
+.field select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2344445a' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
+.field select option{background:var(--bg3);color:var(--text)}
+.pin-input{font-family:var(--mono) !important;font-size:22px !important;letter-spacing:10px;text-align:center}
+
+/* ── BUTTONS ── */
+.btn{width:100%;padding:15px;border:none;border-radius:14px;font-size:15px;font-weight:500;cursor:pointer;font-family:var(--body);transition:.15s;display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:.3px}
+.btn:active{transform:scale(.97)}
+.btn-gold{background:var(--gold);color:#000;font-weight:600}
+.btn-gold:hover{background:#d4b060}
+.btn-ghost{background:var(--bg3);color:var(--text2);border:1px solid var(--border)}
+.btn-ghost:hover{background:var(--bg4);color:var(--text);border-color:var(--border2)}
+.btn-success{background:var(--green-bg);color:var(--green);border:1px solid var(--green-dim);font-weight:600}
+.btn-danger{background:var(--red-bg);color:var(--red);border:1px solid var(--red-dim)}
+.btn-sm{width:auto;padding:8px 16px;font-size:12px;border-radius:10px}
+.btn + .btn{margin-top:8px}
+.back-btn{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text3);background:none;border:none;cursor:pointer;font-family:var(--body);padding:16px 20px 0;flex-shrink:0}
+.back-btn:hover{color:var(--text2)}
+
+/* ── CAMERA ── */
+.cam-wrap{width:100%;aspect-ratio:4/3;background:#000;border-radius:14px;overflow:hidden;border:1px solid var(--border);position:relative}
+.cam-wrap video{width:100%;height:100%;object-fit:cover}
+.cam-placeholder{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--text3)}
+.cam-placeholder span{font-size:12px}
+canvas{display:none}
+.photo-prev{width:100%;border-radius:14px;border:1px solid var(--border);display:none;margin-bottom:4px}
+
+/* ── GEO PILLS ── */
+.geo-pill{display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border-radius:20px;font-size:12px;font-family:var(--mono);line-height:1}
+.geo-ok{background:var(--green-bg);color:var(--green);border:1px solid var(--green-dim)}
+.geo-warn{background:var(--amber-bg);color:var(--amber);border:1px solid #2a1e00}
+.geo-err{background:var(--red-bg);color:var(--red);border:1px solid var(--red-dim)}
+.geo-dot{width:7px;height:7px;border-radius:50%;background:currentColor;animation:pulse 1.4s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+
+/* ── BADGES ── */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.b-ok{background:var(--green-bg);color:var(--green)}
+.b-late{background:var(--red-bg);color:var(--red)}
+
+/* ── RECORDS ── */
+.record-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:8px}
+.record-card:last-child{margin-bottom:0}
+.rec-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+.rec-name{font-size:15px;font-weight:500}
+.rec-time{font-family:var(--mono);font-size:13px;color:var(--text2);margin-bottom:4px}
+.rec-loc{font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rec-actions{display:flex;gap:10px;margin-top:8px}
+.link-btn{font-size:11px;color:#60a5fa;background:none;border:none;cursor:pointer;font-family:var(--body);padding:0;text-decoration:underline}
+
+/* ── STATS ── */
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 20px 12px}
+.stat-box{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px 10px;text-align:center}
+.stat-n{font-family:var(--display);font-size:32px;letter-spacing:1px}
+.stat-l{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:2px;margin-top:2px}
+
+/* ── SUCCESS ── */
+.success-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;padding:40px 24px;text-align:center}
+.success-icon{width:80px;height:80px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:36px;margin-bottom:24px}
+.s-ok{background:var(--green-bg);border:2px solid var(--green-dim)}
+.s-late{background:var(--red-bg);border:2px solid var(--red-dim)}
+.success-wrap h2{font-family:var(--display);font-size:36px;letter-spacing:2px;margin-bottom:8px}
+.success-wrap p{font-size:14px;color:var(--text2);line-height:1.8;margin-bottom:28px;font-weight:300}
+
+/* ── ADMIN TABS ── */
+.admin-tabs{display:flex;gap:4px;padding:12px 20px 0;border-bottom:1px solid var(--border)}
+.atab{padding:8px 14px;font-size:12px;font-weight:500;cursor:pointer;border-radius:8px 8px 0 0;color:var(--text3);border:none;background:none;font-family:var(--body);transition:.2s;border-bottom:2px solid transparent}
+.atab.on{color:var(--gold);border-bottom-color:var(--gold)}
+
+/* ── WORKER LIST ── */
+.worker-item{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
+.w-name{font-size:14px;font-weight:500;margin-bottom:3px}
+.w-pin{font-size:11px;color:var(--text3);font-family:var(--mono)}
+
+/* ── SETUP CARDS ── */
+.setup-box{background:var(--bg2);border:1px solid var(--gold-dim);border-radius:14px;padding:16px;margin-bottom:12px}
+.setup-box h4{font-size:13px;color:var(--gold);font-weight:600;margin-bottom:8px}
+.setup-box p{font-size:12px;color:var(--text2);line-height:1.8}
+.setup-box code{font-family:var(--mono);font-size:11px;background:var(--bg3);padding:2px 7px;border-radius:5px;color:var(--text)}
+
+/* ── MY HISTORY ── */
+.hist-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+.hist-date{font-size:11px;color:var(--text3);font-family:var(--mono);margin-bottom:4px}
+.hist-time{font-family:var(--display);font-size:28px;letter-spacing:1px}
+
+/* ── MODAL ── */
+.modal-bg{position:fixed;inset:0;background:#000d;z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-bg.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:24px;width:100%;max-width:380px;max-height:90vh;overflow-y:auto}
+.modal h3{font-family:var(--display);font-size:22px;letter-spacing:1px;margin-bottom:16px}
+.modal img{width:100%;border-radius:12px;margin-bottom:14px}
+.modal-meta{font-family:var(--mono);font-size:12px;color:var(--text2);line-height:2}
+
+/* ── MISC ── */
+.empty{text-align:center;padding:48px 20px;color:var(--text3);font-size:14px}
+.search-wrap{padding:12px 20px}
+.search-wrap input{width:100%;padding:11px 16px;background:var(--bg3);border:1px solid var(--border);border-radius:12px;font-size:13px;color:var(--text);font-family:var(--body)}
+.search-wrap input:focus{outline:none;border-color:var(--gold)}
+.search-wrap input::placeholder{color:var(--text3)}
+.scrollable{flex:1;overflow-y:auto;padding-bottom:32px}
+.gap{height:10px}
+.gap-lg{height:20px}
+.fade-in{animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* scrollbar */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ══ HOME ══════════════════════════════════════════════ -->
+<div class="screen active" id="s-home">
+  <div style="padding:20px 20px 0;display:flex;justify-content:space-between;align-items:center">
+    <span class="brand">BRANIGANS</span>
+    <span class="clock" id="clock-home">--:--</span>
+  </div>
+  <div class="hero fade-in">
+    <span class="hero-tag">Sistema de asistencia</span>
+    <div class="hero-line"></div>
+    <h1>CHECK<span>IN</span></h1>
+    <p>Registro seguro con foto, GPS y hora exacta.</p>
+  </div>
+  <div class="role-grid fade-in">
+    <div class="role-card" onclick="go('s-worker-login')">
+      <span class="r-icon">👷</span>
+      <h3>Soy trabajador</h3>
+      <p>Registrar mi llegada</p>
+    </div>
+    <div class="role-card gold-card" onclick="go('s-admin-login')">
+      <span class="r-icon">🔐</span>
+      <h3>Admin</h3>
+      <p>Ver todos los registros</p>
+    </div>
+  </div>
+  <div style="padding:0 20px 32px;text-align:center">
+    <span style="font-size:11px;color:var(--text3)">BRANIGANS © <span id="yr"></span> — Todos los derechos reservados</span>
+  </div>
+</div>
+
+<!-- ══ WORKER LOGIN ══════════════════════════════════════ -->
+<div class="screen" id="s-worker-login">
+  <button class="back-btn" onclick="go('s-home')">← Inicio</button>
+  <div class="section fade-in">
+    <span class="sec-label">Acceso trabajador</span>
+    <div class="field">
+      <label>Selecciona tu nombre</label>
+      <select id="w-name"><option value="">— Elige tu nombre —</option></select>
+    </div>
+    <div class="field">
+      <label>Tu PIN personal</label>
+      <input class="pin-input" id="w-pin" type="password" inputmode="numeric" maxlength="6" placeholder="· · · ·"/>
+    </div>
+    <div class="gap"></div>
+    <button class="btn btn-gold" onclick="workerLogin()">Entrar →</button>
+  </div>
+</div>
+
+<!-- ══ WORKER MENU ═══════════════════════════════════════ -->
+<div class="screen" id="s-worker-menu">
+  <div class="topbar">
+    <span class="brand">BRANIGANS</span>
+    <div class="topbar-right">
+      <span class="clock" id="clock-worker">--:--</span>
+      <button class="btn btn-ghost btn-sm" onclick="workerLogout()" style="padding:6px 12px;font-size:11px">Salir</button>
+    </div>
+  </div>
+  <div class="section fade-in">
+    <span style="font-size:14px;color:var(--text2);display:block;margin-bottom:4px">Bienvenido,</span>
+    <span id="wm-name" style="font-family:var(--display);font-size:36px;letter-spacing:2px;display:block;margin-bottom:28px"></span>
+    <span class="sec-label">¿Qué deseas hacer?</span>
+    <button class="btn btn-gold" onclick="go('s-checkin')">✅ Registrar mi llegada hoy</button>
+    <button class="btn btn-ghost" onclick="showMyHistory()">📋 Ver mis registros anteriores</button>
+  </div>
+</div>
+
+<!-- ══ CHECK-IN ══════════════════════════════════════════ -->
+<div class="screen" id="s-checkin">
+  <button class="back-btn" onclick="backFromCheckin()">← Volver</button>
+  <div class="scrollable">
+    <div class="section fade-in">
+      <span class="sec-label">1 — Tu ubicación</span>
+      <div id="geo-status"><span class="geo-pill geo-warn"><span class="geo-dot"></span>Obteniendo GPS...</span></div>
+      <div class="gap"></div>
+      <div id="fence-status" style="display:none"></div>
+    </div>
+    <div class="divider"></div>
+    <div class="section">
+      <span class="sec-label">2 — Foto de evidencia</span>
+      <div class="cam-wrap" id="cam-wrap">
+        <div class="cam-placeholder" id="cam-ph">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" opacity=".3"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          <span>Cámara inactiva</span>
+        </div>
+        <video id="video" autoplay playsinline style="display:none;width:100%;height:100%;object-fit:cover"></video>
+      </div>
+      <canvas id="canvas"></canvas>
+      <img id="photo-prev" class="photo-prev" alt="foto de registro"/>
+      <div class="gap"></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost" id="btn-cam" onclick="startCam()">📷 Activar cámara</button>
+        <button class="btn btn-gold" id="btn-snap" onclick="snap()" style="display:none">📸 Tomar foto</button>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="section">
+      <span class="sec-label">3 — Confirmar</span>
+      <button class="btn btn-success" onclick="doCheckin()">✅ Registrar mi llegada ahora</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SUCCESS ═══════════════════════════════════════════ -->
+<div class="screen" id="s-success">
+  <div class="success-wrap fade-in">
+    <div class="success-icon" id="succ-icon-wrap">
+      <span id="succ-icon">✅</span>
+    </div>
+    <h2 id="succ-title">¡A tiempo!</h2>
+    <p id="succ-body">Registro completado correctamente.</p>
+    <button class="btn btn-ghost" style="max-width:280px" onclick="go('s-worker-menu')">← Volver al menú</button>
+  </div>
+</div>
+
+<!-- ══ MY HISTORY ════════════════════════════════════════ -->
+<div class="screen" id="s-my-history">
+  <button class="back-btn" onclick="go('s-worker-menu')">← Volver</button>
+  <div class="section">
+    <span class="sec-label">Mis registros</span>
+  </div>
+  <div class="scrollable" id="my-history-list" style="padding:0 20px 32px"></div>
+</div>
+
+<!-- ══ ADMIN LOGIN ════════════════════════════════════════ -->
+<div class="screen" id="s-admin-login">
+  <button class="back-btn" onclick="go('s-home')">← Inicio</button>
+  <div class="section fade-in">
+    <span class="sec-label">Acceso administrador</span>
+    <div class="field">
+      <label>Contraseña</label>
+      <input id="a-pass" type="password" placeholder="Contraseña de administrador" onkeydown="if(event.key==='Enter')adminLogin()"/>
+    </div>
+    <div class="gap"></div>
+    <button class="btn btn-gold" onclick="adminLogin()">Entrar al panel →</button>
+  </div>
+</div>
+
+<!-- ══ ADMIN PANEL ════════════════════════════════════════ -->
+<div class="screen" id="s-admin">
+  <div class="topbar">
+    <span class="brand">BRANIGANS</span>
+    <div class="topbar-right">
+      <span class="clock" id="clock-admin">--:--</span>
+      <button class="btn btn-ghost btn-sm" onclick="adminLogout()" style="padding:6px 12px;font-size:11px">Salir</button>
+    </div>
+  </div>
+  <div class="admin-tabs">
+    <button class="atab on" id="at-registros" onclick="showTab('registros')">📋 Registros</button>
+    <button class="atab" id="at-trabajadores" onclick="showTab('trabajadores')">👥 Trabajadores</button>
+    <button class="atab" id="at-config" onclick="showTab('config')">⚙️ Config</button>
+  </div>
+  <div class="scrollable">
+
+    <!-- TAB: REGISTROS -->
+    <div id="t-registros">
+      <div class="gap"></div>
+      <div class="stats-grid" id="stats-grid"></div>
+      <div class="search-wrap">
+        <input id="search-inp" placeholder="Buscar por nombre..." oninput="filterRecords(this.value)"/>
+      </div>
+      <div style="padding:0 20px" id="records-list"></div>
+    </div>
+
+    <!-- TAB: TRABAJADORES -->
+    <div id="t-trabajadores" style="display:none">
+      <div class="section">
+        <span class="sec-label">Agregar trabajador</span>
+        <div class="field"><label>Nombre completo</label><input id="new-name" placeholder="Ej: María García"/></div>
+        <div class="field"><label>PIN (4–6 dígitos)</label><input id="new-pin" class="pin-input" type="password" inputmode="numeric" maxlength="6" placeholder="· · · ·"/></div>
+        <button class="btn btn-gold" onclick="addWorker()">+ Agregar trabajador</button>
+        <div class="gap-lg"></div>
+        <span class="sec-label">Lista de trabajadores</span>
+        <div id="worker-list"></div>
+      </div>
+    </div>
+
+    <!-- TAB: CONFIG -->
+    <div id="t-config" style="display:none">
+      <div class="section">
+        <span class="sec-label">Horario de entrada</span>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div class="field"><label>Hora límite</label><input id="cfg-hour" type="number" min="0" max="23" placeholder="9"/></div>
+          <div class="field"><label>Minutos</label><input id="cfg-min" type="number" min="0" max="59" placeholder="0"/></div>
+        </div>
+        <span class="sec-label" style="margin-top:8px">Geofence</span>
+        <div class="field"><label>Latitud del trabajo</label><input id="cfg-lat" placeholder="20.66682"/></div>
+        <div class="field"><label>Longitud del trabajo</label><input id="cfg-lng" placeholder="-103.39182"/></div>
+        <div class="field"><label>Radio permitido (metros)</label><input id="cfg-radius" type="number" placeholder="200"/></div>
+        <button class="btn btn-ghost" onclick="useMyLoc()">📍 Usar mi ubicación actual</button>
+        <div class="gap-lg"></div>
+        <span class="sec-label">Telegram</span>
+        <div class="field"><label>Bot Token</label><input id="cfg-tg-token" placeholder="123456789:ABCDEF..."/></div>
+        <div class="field"><label>Chat ID</label><input id="cfg-tg-chat" placeholder="-100123456789"/></div>
+        <div class="gap"></div>
+        <span class="sec-label">Google Sheets</span>
+        <div class="field"><label>URL del Apps Script</label><input id="cfg-sheets" placeholder="https://script.google.com/macros/s/..."/></div>
+        <div class="gap"></div>
+        <span class="sec-label">Seguridad</span>
+        <div class="field"><label>Contraseña de administrador</label><input id="cfg-adminpass" type="password" placeholder="Nueva contraseña admin"/></div>
+        <button class="btn btn-gold" onclick="saveConfig()">💾 Guardar configuración</button>
+        <div class="gap-lg"></div>
+        <div class="setup-box">
+          <h4>📊 Cómo conectar Google Sheets</h4>
+          <p>
+            1. Abre Google Sheets y crea una hoja nueva<br>
+            2. Ve a <code>Extensiones → Apps Script</code><br>
+            3. Borra el código que hay y pega el de abajo<br>
+            4. Haz clic en <code>Implementar → Nueva implementación</code><br>
+            5. Tipo: <code>App web</code> · Acceso: <code>Cualquiera</code><br>
+            6. Copia la URL y pégala arriba
+          </p>
+        </div>
+        <div class="setup-box" style="border-color:var(--border)">
+          <h4 style="color:var(--text2)">Código para Apps Script:</h4>
+          <p style="font-family:var(--mono);font-size:11px;line-height:2;color:var(--text2)">
+            function doPost(e) {<br>
+            &nbsp;&nbsp;const s = SpreadsheetApp<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;.getActiveSheet();<br>
+            &nbsp;&nbsp;const d = JSON.parse(<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;e.postData.contents);<br>
+            &nbsp;&nbsp;s.appendRow([d.name, d.date,<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;d.time,<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;d.late?'Tarde':'A tiempo',<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;d.geo]);<br>
+            &nbsp;&nbsp;return ContentService<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;.createTextOutput('ok');<br>
+            }
+          </p>
+        </div>
+        <div class="setup-box">
+          <h4>📱 Cómo crear bot de Telegram</h4>
+          <p>
+            1. Abre Telegram y busca <code>@BotFather</code><br>
+            2. Escribe <code>/newbot</code> y sigue los pasos<br>
+            3. Copia el token que te da<br>
+            4. Para el Chat ID busca <code>@userinfobot</code><br>
+            5. Si quieres un grupo, añade el bot y usa <code>@RawDataBot</code> para ver el ID del grupo
+          </p>
+        </div>
+        <div class="gap-lg"></div>
+        <button class="btn btn-ghost" onclick="exportCSV()">📥 Exportar registros como CSV</button>
+        <div class="gap"></div>
+        <button class="btn btn-danger" onclick="confirmReset()">🗑 Resetear todos los datos</button>
+      </div>
+    </div>
+
+  </div><!-- /scrollable -->
+</div>
+
+<!-- ══ PHOTO MODAL ════════════════════════════════════════ -->
+<div class="modal-bg" id="photo-modal" onclick="closeModal()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <h3>Evidencia</h3>
+    <img id="modal-img" src="" alt="foto de registro"/>
+    <div class="modal-meta" id="modal-meta"></div>
+    <div class="gap-lg"></div>
+    <button class="btn btn-ghost" onclick="closeModal()">Cerrar</button>
+  </div>
+</div>
+
+<script>
+// ══ DATABASE ═══════════════════════════════════════════════════
+const DB={
+  get w(){return JSON.parse(localStorage.getItem('bg_w')||'[]')},
+  sw(v){localStorage.setItem('bg_w',JSON.stringify(v))},
+  get r(){return JSON.parse(localStorage.getItem('bg_r')||'[]')},
+  sr(v){localStorage.setItem('bg_r',JSON.stringify(v))},
+  get c(){return JSON.parse(localStorage.getItem('bg_c')||JSON.stringify({hour:9,min:0,lat:'',lng:'',radius:200,tgToken:'',tgChat:'',sheetsUrl:'',adminPass:'admin123'}))},
+  sc(v){localStorage.setItem('bg_c',JSON.stringify(v))}
+};
+// seed demo workers
+// Trabajadores BRANIGANS
+const WORKERS_DEFAULT = [
+  {name:"Francisco", pin:"1111"},
+  {name:"Javier",    pin:"2222"},
+  {name:"Josue",     pin:"3333"},
+  {name:"Rene",      pin:"4444"},
+  {name:"Fernanda",  pin:"5555"},
+  {name:"Marcos",    pin:"6666"},
+  {name:"Sara",      pin:"7777"},
+  {name:"Maricruz",  pin:"8888"}
+];
+if(!DB.w.length) DB.sw(WORKERS_DEFAULT);
+
+let currentWorker=null, photoData=null, geoData=null, camStream=null;
+
+// ══ CLOCK ══════════════════════════════════════════════════════
+function tick(){
+  const t=new Date().toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'});
+  ['clock-home','clock-worker','clock-admin'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=t;});
+}
+setInterval(tick,1000); tick();
+document.getElementById('yr').textContent=new Date().getFullYear();
+
+// ══ NAVIGATION ═════════════════════════════════════════════════
+let prevScreen=null;
+function go(id){
+  const all=document.querySelectorAll('.screen');
+  const cur=[...all].find(s=>s.classList.contains('active'));
+  all.forEach(s=>{s.classList.remove('active','prev');});
+  if(cur&&cur.id!==id) cur.classList.add('prev');
+  const next=document.getElementById(id);
+  next.classList.add('active');
+  prevScreen=cur?cur.id:null;
+  if(id==='s-worker-login') populateSelect();
+  if(id==='s-checkin') initCheckin();
+  if(id==='s-admin') renderRegistros();
+  setTimeout(()=>{ document.querySelectorAll('.screen.prev').forEach(s=>s.classList.remove('prev')); },400);
+}
+
+// ══ WORKER AUTH ════════════════════════════════════════════════
+function populateSelect(){
+  const sel=document.getElementById('w-name');
+  sel.innerHTML='<option value="">— Elige tu nombre —</option>';
+  DB.w.forEach(w=>{const o=document.createElement('option');o.value=w.name;o.textContent=w.name;sel.appendChild(o);});
+}
+function workerLogin(){
+  const name=document.getElementById('w-name').value;
+  const pin=document.getElementById('w-pin').value;
+  if(!name){alert('Selecciona tu nombre');return;}
+  const worker=DB.w.find(w=>w.name===name&&w.pin===pin);
+  if(!worker){alert('PIN incorrecto. Inténtalo de nuevo.');return;}
+  currentWorker=worker;
+  document.getElementById('wm-name').textContent=worker.name.split(' ')[0].toUpperCase();
+  document.getElementById('w-pin').value='';
+  go('s-worker-menu');
+}
+function workerLogout(){currentWorker=null;go('s-home');}
+
+// ══ CHECK-IN ═══════════════════════════════════════════════════
+function initCheckin(){
+  photoData=null; geoData=null;
+  document.getElementById('photo-prev').style.display='none';
+  document.getElementById('photo-prev').src='';
+  document.getElementById('btn-snap').style.display='none';
+  document.getElementById('btn-cam').style.display='flex';
+  document.getElementById('cam-ph').style.display='flex';
+  document.getElementById('video').style.display='none';
+  document.getElementById('fence-status').style.display='none';
+  if(camStream){camStream.getTracks().forEach(t=>t.stop());camStream=null;}
+  startGeo();
+}
+function backFromCheckin(){
+  if(camStream){camStream.getTracks().forEach(t=>t.stop());camStream=null;}
+  go('s-worker-menu');
+}
+function startGeo(){
+  const st=document.getElementById('geo-status');
+  if(!navigator.geolocation){
+    st.innerHTML='<span class="geo-pill geo-err">GPS no disponible en este dispositivo</span>';return;
+  }
+  navigator.geolocation.getCurrentPosition(pos=>{
+    geoData={lat:pos.coords.latitude,lng:pos.coords.longitude,acc:Math.round(pos.coords.accuracy)};
+    st.innerHTML=`<span class="geo-pill geo-ok"><span class="geo-dot"></span>${geoData.lat.toFixed(5)}, ${geoData.lng.toFixed(5)} ±${geoData.acc}m</span>`;
+    checkFence();
+  },()=>{
+    st.innerHTML='<span class="geo-pill geo-err">✗ No se pudo obtener ubicación. Activa el GPS.</span>';
+  },{enableHighAccuracy:true,timeout:12000,maximumAge:0});
+}
+function checkFence(){
+  const cfg=DB.c, fs=document.getElementById('fence-status');
+  if(!cfg.lat||!cfg.lng||!geoData){fs.style.display='none';return;}
+  const d=haversine(geoData.lat,geoData.lng,parseFloat(cfg.lat),parseFloat(cfg.lng));
+  fs.style.display='block';
+  fs.innerHTML=d<=cfg.radius
+    ?`<span class="geo-pill geo-ok">✓ Dentro del área de trabajo (${Math.round(d)}m de ${cfg.radius}m)</span>`
+    :`<span class="geo-pill geo-err">✗ Fuera del área: ${Math.round(d)}m · Límite: ${cfg.radius}m</span>`;
+}
+function haversine(a,b,c,d){
+  const R=6371000,dL=(c-a)*Math.PI/180,dN=(d-b)*Math.PI/180;
+  const x=Math.sin(dL/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(dN/2)**2;
+  return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
+}
+async function startCam(){
+  try{
+    camStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:1280},height:{ideal:960}},audio:false});
+    const v=document.getElementById('video');
+    v.srcObject=camStream; v.style.display='block';
+    document.getElementById('cam-ph').style.display='none';
+    document.getElementById('btn-cam').style.display='none';
+    document.getElementById('btn-snap').style.display='flex';
+  }catch(e){alert('No se pudo acceder a la cámara. Verifica los permisos del navegador.');}
+}
+function snap(){
+  const v=document.getElementById('video'),c=document.getElementById('canvas');
+  c.width=v.videoWidth||640; c.height=v.videoHeight||480;
+  c.getContext('2d').drawImage(v,0,0);
+  photoData=c.toDataURL('image/jpeg',0.65);
+  const prev=document.getElementById('photo-prev');
+  prev.src=photoData; prev.style.display='block';
+  document.getElementById('cam-wrap').style.display='none';
+  document.getElementById('btn-cam').style.display='none';
+  document.getElementById('btn-snap').textContent='🔄 Retomar foto';
+  document.getElementById('btn-snap').style.display='flex';
+  if(camStream){camStream.getTracks().forEach(t=>t.stop());camStream=null;}
+}
+function doCheckin(){
+  const cfg=DB.c;
+  if(!currentWorker){alert('Sesión expirada. Vuelve a ingresar.');go('s-home');return;}
+  if(cfg.lat&&cfg.lng&&geoData){
+    const d=haversine(geoData.lat,geoData.lng,parseFloat(cfg.lat),parseFloat(cfg.lng));
+    if(d>cfg.radius){alert(`Estás a ${Math.round(d)}m del lugar de trabajo.\nDebes estar dentro de ${cfg.radius}m para registrarte.`);return;}
+  }
+  const now=new Date();
+  const late=now.getHours()>cfg.hour||(now.getHours()===cfg.hour&&now.getMinutes()>cfg.min);
+  const rec={
+    id:Date.now(),
+    name:currentWorker.name,
+    time:now.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit',second:'2-digit'}),
+    date:now.toLocaleDateString('es-MX'),
+    ts:now.getTime(),
+    late,
+    geo:geoData?`${geoData.lat.toFixed(5)}, ${geoData.lng.toFixed(5)}`:'No disponible',
+    photo:photoData||null
+  };
+  const recs=DB.r; recs.push(rec); DB.sr(recs);
+  sendSheets(rec);
+  if(late) sendTelegram(`🔴 *${rec.name}* llegó TARDE en BRANIGANS\n🕐 ${rec.time}  📅 ${rec.date}\n📍 ${rec.geo}`);
+  // Show result
+  const wrap=document.getElementById('succ-icon-wrap');
+  document.getElementById('succ-icon').textContent=late?'⚠️':'✅';
+  wrap.className='success-icon '+(late?'s-late':'s-ok');
+  document.getElementById('succ-title').textContent=late?'Llegada tardía':'¡A tiempo!';
+  document.getElementById('succ-body').innerHTML=
+    `<strong>${rec.name}</strong><br>${rec.time} · ${rec.date}`+
+    (late?`<br><br>Llegaste después de las ${String(cfg.hour).padStart(2,'0')}:${String(cfg.min).padStart(2,'0')}.`
+         :`<br><br>¡Puntual! Buen trabajo.`);
+  go('s-success');
+}
+
+// ══ INTEGRATIONS ════════════════════════════════════════════════
+async function sendSheets(rec){
+  const url=DB.c.sheetsUrl; if(!url) return;
+  try{fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify(rec)});}catch(e){}
+}
+async function sendTelegram(msg){
+  const{tgToken:t,tgChat:c}=DB.c; if(!t||!c) return;
+  try{fetch(`https://api.telegram.org/bot${t}/sendMessage`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:c,text:msg,parse_mode:'Markdown'})});}catch(e){}
+}
+
+// ══ MY HISTORY ══════════════════════════════════════════════════
+function showMyHistory(){
+  if(!currentWorker) return;
+  const mine=DB.r.filter(r=>r.name===currentWorker.name).sort((a,b)=>b.ts-a.ts);
+  const list=document.getElementById('my-history-list');
+  if(!mine.length){list.innerHTML='<div class="empty">Aún no tienes registros.</div>';go('s-my-history');return;}
+  list.innerHTML=mine.map(r=>`
+    <div class="hist-card">
+      <div>
+        <div class="hist-date">${r.date}</div>
+        <div class="hist-time">${r.time}</div>
+        <div style="font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:4px">${r.geo}</div>
+      </div>
+      <span class="badge ${r.late?'b-late':'b-ok'}">${r.late?'Tarde':'A tiempo'}</span>
+    </div>`).join('');
+  go('s-my-history');
+}
+
+// ══ ADMIN AUTH ══════════════════════════════════════════════════
+function adminLogin(){
+  if(document.getElementById('a-pass').value!==DB.c.adminPass){alert('Contraseña incorrecta.');return;}
+  document.getElementById('a-pass').value='';
+  go('s-admin'); showTab('registros');
+}
+function adminLogout(){go('s-home');}
+
+// ══ ADMIN TABS ══════════════════════════════════════════════════
+function showTab(t){
+  ['registros','trabajadores','config'].forEach(id=>{
+    document.getElementById('t-'+id).style.display=id===t?'block':'none';
+    document.getElementById('at-'+id).classList.toggle('on',id===t);
+  });
+  if(t==='registros') renderRegistros();
+  if(t==='trabajadores') renderWorkerList();
+  if(t==='config') loadConfig();
+}
+
+// ══ ADMIN RECORDS ═══════════════════════════════════════════════
+function renderRegistros(filter=''){
+  const today=new Date().toLocaleDateString('es-MX');
+  let recs=DB.r.filter(r=>r.date===today);
+  if(filter) recs=recs.filter(r=>r.name.toLowerCase().includes(filter.toLowerCase()));
+  recs=recs.sort((a,b)=>b.ts-a.ts);
+  const onTime=recs.filter(r=>!r.late).length;
+  document.getElementById('stats-grid').innerHTML=`
+    <div class="stat-box"><div class="stat-n">${recs.length}</div><div class="stat-l">Total</div></div>
+    <div class="stat-box"><div class="stat-n" style="color:var(--green)">${onTime}</div><div class="stat-l">A tiempo</div></div>
+    <div class="stat-box"><div class="stat-n" style="color:var(--red)">${recs.length-onTime}</div><div class="stat-l">Tarde</div></div>`;
+  const list=document.getElementById('records-list');
+  if(!recs.length){list.innerHTML='<div class="empty">Sin registros hoy todavía.</div>';return;}
+  list.innerHTML=recs.map(r=>`
+    <div class="record-card">
+      <div class="rec-top">
+        <span class="rec-name">${r.name}</span>
+        <span class="badge ${r.late?'b-late':'b-ok'}">${r.late?'Tarde':'A tiempo'}</span>
+      </div>
+      <div class="rec-time">🕐 ${r.time}</div>
+      <div class="rec-loc">📍 ${r.geo}</div>
+      <div class="rec-actions">
+        ${r.photo?`<button class="link-btn" onclick="openPhoto(${r.id})">Ver foto 📷</button>`:'<span style="font-size:11px;color:var(--text3)">Sin foto</span>'}
+        ${r.geo!=='No disponible'?`<a class="link-btn" href="https://maps.google.com/?q=${r.geo.replace(' ','')}" target="_blank">Ver en mapa 🗺</a>`:''}
+      </div>
+    </div>`).join('');
+}
+function filterRecords(q){renderRegistros(q);}
+
+// ══ WORKERS ═════════════════════════════════════════════════════
+function addWorker(){
+  const name=document.getElementById('new-name').value.trim();
+  const pin=document.getElementById('new-pin').value.trim();
+  if(!name||pin.length<4){alert('Ingresa nombre y PIN de mínimo 4 dígitos.');return;}
+  if(DB.w.find(w=>w.name===name)){alert('Ya existe un trabajador con ese nombre.');return;}
+  const ws=DB.w; ws.push({name,pin}); DB.sw(ws);
+  document.getElementById('new-name').value='';
+  document.getElementById('new-pin').value='';
+  renderWorkerList();
+}
+function removeWorker(name){
+  if(!confirm(`¿Eliminar a ${name} permanentemente?`)) return;
+  DB.sw(DB.w.filter(w=>w.name!==name));
+  renderWorkerList();
+}
+function renderWorkerList(){
+  const ws=DB.w, el=document.getElementById('worker-list');
+  if(!ws.length){el.innerHTML='<div class="empty">Sin trabajadores registrados.</div>';return;}
+  el.innerHTML=ws.map(w=>`
+    <div class="worker-item">
+      <div>
+        <div class="w-name">${w.name}</div>
+        <div class="w-pin">PIN: ${'•'.repeat(w.pin.length)}</div>
+      </div>
+      <button class="btn btn-danger btn-sm" onclick="removeWorker('${w.name.replace(/'/g,"\\'")}')">Eliminar</button>
+    </div>`).join('');
+}
+
+// ══ CONFIG ══════════════════════════════════════════════════════
+function loadConfig(){
+  const c=DB.c;
+  document.getElementById('cfg-hour').value=c.hour;
+  document.getElementById('cfg-min').value=c.min;
+  document.getElementById('cfg-lat').value=c.lat||'';
+  document.getElementById('cfg-lng').value=c.lng||'';
+  document.getElementById('cfg-radius').value=c.radius;
+  document.getElementById('cfg-tg-token').value=c.tgToken||'';
+  document.getElementById('cfg-tg-chat').value=c.tgChat||'';
+  document.getElementById('cfg-sheets').value=c.sheetsUrl||'';
+  document.getElementById('cfg-adminpass').value='';
+}
+function saveConfig(){
+  const curr=DB.c;
+  const newPass=document.getElementById('cfg-adminpass').value.trim();
+  DB.sc({
+    hour:parseInt(document.getElementById('cfg-hour').value)||9,
+    min:parseInt(document.getElementById('cfg-min').value)||0,
+    lat:document.getElementById('cfg-lat').value.trim(),
+    lng:document.getElementById('cfg-lng').value.trim(),
+    radius:parseInt(document.getElementById('cfg-radius').value)||200,
+    tgToken:document.getElementById('cfg-tg-token').value.trim(),
+    tgChat:document.getElementById('cfg-tg-chat').value.trim(),
+    sheetsUrl:document.getElementById('cfg-sheets').value.trim(),
+    adminPass:newPass||curr.adminPass
+  });
+  alert('✅ Configuración guardada correctamente.');
+}
+function useMyLoc(){
+  navigator.geolocation.getCurrentPosition(p=>{
+    document.getElementById('cfg-lat').value=p.coords.latitude.toFixed(6);
+    document.getElementById('cfg-lng').value=p.coords.longitude.toFixed(6);
+    alert('📍 Ubicación actual guardada como base del geofence.');
+  },()=>alert('No se pudo obtener la ubicación.'));
+}
+function exportCSV(){
+  const recs=DB.r;
+  if(!recs.length){alert('No hay registros para exportar.');return;}
+  const rows=[['Nombre','Fecha','Hora','Estado','GPS'],...recs.sort((a,b)=>b.ts-a.ts).map(r=>[r.name,r.date,r.time,r.late?'Tarde':'A tiempo',r.geo])];
+  const csv=rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
+  a.download=`branigans_asistencia_${new Date().toLocaleDateString('es-MX').replace(/\//g,'-')}.csv`;
+  a.click();
+}
+function confirmReset(){
+  if(confirm('⚠️ ¿Estás seguro? Se borrarán TODOS los registros y trabajadores.')){
+    if(confirm('Última confirmación: esto no se puede deshacer.')){
+      localStorage.clear(); location.reload();
+    }
+  }
+}
+
+// ══ PHOTO MODAL ═════════════════════════════════════════════════
+function openPhoto(id){
+  const r=DB.r.find(r=>r.id===id); if(!r||!r.photo) return;
+  document.getElementById('modal-img').src=r.photo;
+  document.getElementById('modal-meta').innerHTML=`Trabajador: ${r.name}<br>Hora: ${r.time}<br>Fecha: ${r.date}<br>GPS: ${r.geo}`;
+  document.getElementById('photo-modal').classList.add('open');
+}
+function closeModal(){document.getElementById('photo-modal').classList.remove('open');}
+</script>
+</body>
+</html>
