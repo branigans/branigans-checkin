@@ -221,10 +221,7 @@ canvas{display:none}
       <label>Selecciona tu nombre</label>
       <select id="w-name"><option value="">— Elige tu nombre —</option></select>
     </div>
-    <div class="field">
-      <label>Tu PIN personal</label>
-      <input class="pin-input" id="w-pin" type="password" inputmode="numeric" maxlength="6" placeholder="· · · ·"/>
-    </div>
+
     <div class="gap"></div>
     <button class="btn btn-gold" onclick="workerLogin()">Entrar →</button>
   </div>
@@ -350,7 +347,7 @@ canvas{display:none}
       <div class="section">
         <span class="sec-label">Agregar trabajador</span>
         <div class="field"><label>Nombre completo</label><input id="new-name" placeholder="Ej: María García"/></div>
-        <div class="field"><label>PIN (4–6 dígitos)</label><input id="new-pin" class="pin-input" type="password" inputmode="numeric" maxlength="6" placeholder="· · · ·"/></div>
+
         <button class="btn btn-gold" onclick="addWorker()">+ Agregar trabajador</button>
         <div class="gap-lg"></div>
         <span class="sec-label">Lista de trabajadores</span>
@@ -455,14 +452,14 @@ const DB={
 // seed demo workers
 // Trabajadores BRANIGANS
 const WORKERS_DEFAULT = [
-  {name:"Francisco", pin:"1111"},
-  {name:"Javier",    pin:"2222"},
-  {name:"Josue",     pin:"3333"},
-  {name:"Rene",      pin:"4444"},
-  {name:"Fernanda",  pin:"5555"},
-  {name:"Marcos",    pin:"6666"},
-  {name:"Sara",      pin:"7777"},
-  {name:"Maricruz",  pin:"8888"}
+  {name:"Francisco", pin:""},
+  {name:"Javier",    pin:""},
+  {name:"Josue",     pin:""},
+  {name:"Rene",      pin:""},
+  {name:"Fernanda",  pin:""},
+  {name:"Marcos",    pin:""},
+  {name:"Sara",      pin:""},
+  {name:"Maricruz",  pin:""}
 ];
 if(!DB.w.length) DB.sw(WORKERS_DEFAULT);
 
@@ -500,13 +497,10 @@ function populateSelect(){
 }
 function workerLogin(){
   const name=document.getElementById('w-name').value;
-  const pin=document.getElementById('w-pin').value;
   if(!name){alert('Selecciona tu nombre');return;}
-  const worker=DB.w.find(w=>w.name===name&&w.pin===pin);
-  if(!worker){alert('PIN incorrecto. Inténtalo de nuevo.');return;}
+  const worker=DB.w.find(w=>w.name===name);
+  if(!worker){alert('Selecciona tu nombre de la lista');return;}
   currentWorker=worker;
-  document.getElementById('wm-name').textContent=worker.name.split(' ')[0].toUpperCase();
-  document.getElementById('w-pin').value='';
   go('s-worker-menu');
 }
 function workerLogout(){currentWorker=null;go('s-home');}
@@ -691,12 +685,10 @@ function filterRecords(q){renderRegistros(q);}
 // ══ WORKERS ═════════════════════════════════════════════════════
 function addWorker(){
   const name=document.getElementById('new-name').value.trim();
-  const pin=document.getElementById('new-pin').value.trim();
-  if(!name||pin.length<4){alert('Ingresa nombre y PIN de mínimo 4 dígitos.');return;}
+  if(!name){alert('Ingresa el nombre del trabajador.');return;}
   if(DB.w.find(w=>w.name===name)){alert('Ya existe un trabajador con ese nombre.');return;}
-  const ws=DB.w; ws.push({name,pin}); DB.sw(ws);
+  const ws=DB.w; ws.push({name,pin:''}); DB.sw(ws);
   document.getElementById('new-name').value='';
-  document.getElementById('new-pin').value='';
   renderWorkerList();
 }
 function removeWorker(name){
@@ -711,7 +703,6 @@ function renderWorkerList(){
     <div class="worker-item">
       <div>
         <div class="w-name">${w.name}</div>
-        <div class="w-pin">PIN: ${'•'.repeat(w.pin.length)}</div>
       </div>
       <button class="btn btn-danger btn-sm" onclick="removeWorker('${w.name.replace(/'/g,"\\'")}')">Eliminar</button>
     </div>`).join('');
